@@ -395,7 +395,7 @@ LorawanMacHelper::SetSpreadingFactorsUp (NodeContainer endDevices, NodeContainer
       // NS_LOG_DEBUG ("Rx Power: " << highestRxPower);
       double rxPower = highestRxPower;
 
-      // Get the ED sensitivity
+      // Get the ED_A sensitivity
       Ptr<EndDeviceLoraPhy> edPhy = loraNetDevice->GetPhy ()->GetObject<EndDeviceLoraPhy> ();
       const double *edSensitivity = edPhy->sensitivity;
 
@@ -486,6 +486,56 @@ LorawanMacHelper::SetSpreadingFactorsUp (NodeContainer endDevices, NodeContainer
 
         }
         */
+
+    } // end loop on nodes
+
+  return sfQuantity;
+
+} //  end function
+
+std::vector<int>
+LorawanMacHelper::SetSameSpreadingFactorsUp (NodeContainer endDevices, NodeContainer gateways,
+                                         Ptr<LoraChannel> channel, int sfVal)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+
+  std::vector<int> sfQuantity (7, 0);
+  for (NodeContainer::Iterator j = endDevices.Begin (); j != endDevices.End (); ++j)
+    {
+      Ptr<Node> object = *j;
+      Ptr<MobilityModel> position = object->GetObject<MobilityModel> ();
+      NS_ASSERT (position != 0);
+      Ptr<NetDevice> netDevice = object->GetDevice (0);
+      Ptr<LoraNetDevice> loraNetDevice = netDevice->GetObject<LoraNetDevice> ();
+      NS_ASSERT (loraNetDevice != 0);
+      Ptr<ClassAEndDeviceLorawanMac> mac = loraNetDevice->GetMac ()->GetObject<ClassAEndDeviceLorawanMac> ();
+      NS_ASSERT (mac != 0);
+
+      // Try computing the distance from each gateway and find the best one
+      Ptr<Node> bestGateway = gateways.Get (0);
+      Ptr<MobilityModel> bestGatewayPosition = bestGateway->GetObject<MobilityModel> ();
+
+      // Assume devices transmit at 14 dBm
+      double highestRxPower = channel->GetRxPower (14, position, bestGatewayPosition);
+
+      for (NodeContainer::Iterator currentGw = gateways.Begin () + 1; currentGw != gateways.End ();
+           ++currentGw)
+        {
+          // Compute the power received from the current gateway
+          Ptr<Node> curr = *currentGw;
+          Ptr<MobilityModel> currPosition = curr->GetObject<MobilityModel> ();
+          double currentRxPower = channel->GetRxPower (14, position, currPosition); // dBm
+
+          if (currentRxPower > highestRxPower)
+            {
+              bestGateway = curr;
+              bestGatewayPosition = curr->GetObject<MobilityModel> ();
+              highestRxPower = currentRxPower;
+            }
+        }
+
+      mac->SetDataRate (12-sfVal);
+      sfQuantity[sfVal-7] = sfQuantity[sfVal-7] + 1;
 
     } // end loop on nodes
 

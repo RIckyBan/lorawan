@@ -24,6 +24,8 @@
 #include "ns3/lora-frame-header.h"
 #include "ns3/log.h"
 
+#include <fstream>
+
 namespace ns3 {
 namespace lorawan {
 
@@ -127,6 +129,8 @@ GatewayLorawanMac::Receive (Ptr<Packet const> packet)
 
       NS_LOG_DEBUG ("Received packet: " << packet);
 
+      // this->Logger();
+
       m_receivedPacket (packet);
     }
   else
@@ -155,5 +159,25 @@ GatewayLorawanMac::GetWaitingTime (double frequency)
   return m_channelHelper.GetWaitingTime (CreateObject<LogicalLoraChannel>
                                            (frequency));
 }
+
+void GatewayLorawanMac::Logger()
+{
+  double cur = Simulator::Now().GetSeconds();
+  std::string curT = std::to_string(cur);
+
+  if(cur > this->cursor + this->th){
+    // std::printf("%f: %d\n",this->cursor, this->pktCount);
+    std::ofstream out("log.txt", std::ios::app);
+    out << std::to_string(this->cursor) << "\t" << this->pktCount << std::endl;
+    
+    this->cursor = this->th*(int)(cur/this->th); //cursorの更新
+    this->pktCount = 1; //パケット数のリセット
+  } else if(cur >= this->cursor) {
+    this->pktCount++;
+  } else {
+    std::cout << "CURSOR ERROR!" << std::endl;
+  }
+}
+
 }
 }

@@ -99,6 +99,9 @@ public:
    */
   static std::vector<int> SetSpreadingFactorsUp (NodeContainer endDevices, NodeContainer gateways,
                                                  Ptr<LoraChannel> channel);
+
+  static std::vector<int> SetSameSpreadingFactorsUp (NodeContainer endDevices, NodeContainer gateways,
+                                                 Ptr<LoraChannel> channel, int sfVal);
   /**
    * Set up the end device's data rates according to the given distribution.
    */

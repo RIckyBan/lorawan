@@ -18,8 +18,8 @@
  * Author: Davide Magrin <magrinda@dei.unipd.it>
  */
 
-#ifndef GATEWAY_LORAWAN_MAC_H
-#define GATEWAY_LORAWAN_MAC_H
+#ifndef GATEWAY_LORA_MAC_H
+#define GATEWAY_LORA_MAC_H
 
 #include "ns3/lorawan-mac.h"
 #include "ns3/lora-tag.h"
@@ -50,6 +50,8 @@ public:
   // Implementation of the LorawanMac interface
   virtual void TxFinished (Ptr<Packet const> packet);
 
+  virtual void Logger();
+
   /**
    * Return the next time at which we will be able to transmit.
    *
@@ -57,10 +59,13 @@ public:
    */
   Time GetWaitingTime (double frequency);
 private:
+  double cursor = -1.0;
+  double th = 0.25;
+  int pktCount = 0;
 protected:
 };
 
 } /* namespace ns3 */
 
 }
-#endif /* GATEWAY_LORAWAN_MAC_H */
+#endif /* GATEWAY_LORA_MAC_H */
